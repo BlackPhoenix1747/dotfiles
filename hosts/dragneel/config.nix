@@ -408,7 +408,6 @@
       material-icons
       victor-mono
       iosevka
-      maple-mono
     ];
   };
 
@@ -444,14 +443,19 @@
         main = {
           config = ''
             (defsrc
-              caps ralt
+              caps
+              ralt
+            )
+            (defvar
+              tap 200
+              hold 200
             )
             (defalias 
-              ;; tap caps lock as caps lock, hold caps lock as left control
-              caps (tap-hold 200 200 caps lctl)
+              caps (tap-hold $tap $hold esc lctl)
             )
             (deflayer base
-              @caps bspc
+              @caps
+              bspc
             )
           '';
         };

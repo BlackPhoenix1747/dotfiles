@@ -36,7 +36,7 @@
       builtins.fetchGit {
         url = "https://github.com/nix-community/emacs-overlay.git";
         ref = "master";
-        rev = "e171f7ac85c6aba2463fee6f22288d6d249c9c7a";
+        rev = "4ebaf4d0b6b8ab9bacd57f5db199da2d76eea8da";
       }
     ))
   ];

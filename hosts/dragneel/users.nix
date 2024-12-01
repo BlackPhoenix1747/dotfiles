@@ -22,7 +22,7 @@ in
         "gamemode"
         "uinput"
       ];
-      shell = pkgs.nushell;
+      shell = pkgs.zsh;
       ignoreShellProgramCheck = true;
       packages =
         with pkgs;

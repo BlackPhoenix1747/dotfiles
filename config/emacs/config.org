@@ -11,12 +11,10 @@
   - [[#sourcing-the-scripts][Sourcing the scripts]]
 - [[#all-the-fonts][ALL THE FONTS]]
 - [[#backup][BACKUP]]
-- [[#carbon-now][CARBON-NOW]]
 - [[#company][COMPANY]]
 - [[#dashboard][DASHBOARD]]
 - [[#diminish][DIMINISH]]
 - [[#dired][DIRED]]
-- [[#elcord][ELCORD]]
 - [[#elfeed][ELFEED]]
 - [[#flycheck][FLYCHECK]]
 - [[#fonts][FONTS]]
@@ -55,7 +53,6 @@
   - [[#eshell][Eshell]]
   - [[#vterm][Vterm]]
   - [[#vterm-toggle][Vterm-Toggle]]
-- [[#code-snippets][CODE SNIPPETS]]
 - [[#sudo-edit][SUDO EDIT]]
 - [[#theme][THEME]]
 - [[#tldr][TLDR]]
@@ -120,12 +117,6 @@ Icon installation
 By default, Emacs creates automatic backups of files in their original directories, such “file.el” and the backup “file.el~”.  This leads to a lot of clutter, so let’s tell Emacs to put all backups that it creates in the =TRASH= directory.
 #+begin_src emacs-lisp
 (setq backup-directory-alist '((".*" . "~/.local/share/Trash/files")))
-#+end_src
-
-* CARBON-NOW
-Utility used to take clean screenshots of snippets of code
-#+begin_src emacs-lisp
-(use-package carbon-now-sh)
 #+end_src
 
 * COMPANY
@@ -199,41 +190,30 @@ This package implements hiding or abbreviation of the modeline displays (lighter
     (evil-define-key 'normal peep-dired-mode-map (kbd "k") 'peep-dired-prev-file))
 #+end_src
 
-* ELCORD
-Discord Rich Text Presence for Emacs
-#+begin_src emacs-lisp
-(use-package elcord
-  :config
-  (setq elcord-idle-message "I can have an editor open and do something else.....")
-  (setq elcord-refresh-rate 1)
-(setq elcord-use-major-mode-as-main-icon t))
-(elcord-mode 1)
-#+end_src
-
 * ELFEED
 An RSS newsfeed reader for Emacs.  Move through the articles with ‘j/k’.  Move through the stories with ‘CTRL j/k’ when in other frame.
 #+begin_src emacs-lisp
-(use-package elfeed
-  :config
-  (setq elfeed-search-feed-face ":foreground #ffffff :weight bold"
-        elfeed-feeds (quote
-                       (("https://www.reddit.com/r/linux.rss" reddit linux)
-                        ("https://www.reddit.com/r/commandline.rss" reddit commandline)
-                        ("https://www.reddit.com/r/distrotube.rss" reddit distrotube)
-                        ("https://www.reddit.com/r/emacs.rss" reddit emacs)
-                        ("https://www.gamingonlinux.com/article_rss.php" gaming linux)
-                        ("https://hackaday.com/blog/feed/" hackaday linux)
-                        ("https://opensource.com/feed" opensource linux)
-                        ("https://linux.softpedia.com/backend.xml" softpedia linux)
-                        ("https://itsfoss.com/feed/" itsfoss linux)
-                        ("https://www.phoronix.com/rss.php" phoronix linux)
-                        ("http://feeds.feedburner.com/d0od" omgubuntu linux)
-                        ("https://www.techrepublic.com/rssfeeds/topic/open-source/" techrepublic linux)
-                        ("http://lxer.com/module/newswire/headlines.rss" lxer linux)))))
-
-(use-package elfeed-goodies
-  :config
-  (setq elfeed-goodies/entry-pane-size 0.5))
+;; (use-package elfeed
+  ;; :config
+  ;; (setq elfeed-search-feed-face ":foreground #ffffff :weight bold"
+        ;; elfeed-feeds (quote
+                       ;; (("https://www.reddit.com/r/linux.rss" reddit linux)
+                        ;; ("https://www.reddit.com/r/commandline.rss" reddit commandline)
+                        ;; ("https://www.reddit.com/r/distrotube.rss" reddit distrotube)
+                        ;; ("https://www.reddit.com/r/emacs.rss" reddit emacs)
+                        ;; ("https://www.gamingonlinux.com/article_rss.php" gaming linux)
+                        ;; ("https://hackaday.com/blog/feed/" hackaday linux)
+                        ;; ("https://opensource.com/feed" opensource linux)
+                        ;; ("https://linux.softpedia.com/backend.xml" softpedia linux)
+                        ;; ("https://itsfoss.com/feed/" itsfoss linux)
+                        ;; ("https://www.phoronix.com/rss.php" phoronix linux)
+                        ;; ("http://feeds.feedburner.com/d0od" omgubuntu linux)
+                        ;; ("https://www.techrepublic.com/rssfeeds/topic/open-source/" techrepublic linux)
+                        ;; ("http://lxer.com/module/newswire/headlines.rss" lxer linux)))))
+;; 
+;; (use-package elfeed-goodies
+  ;; :config
+  ;; (setq elfeed-goodies/entry-pane-size 0.5))
 #+end_src
 
 
@@ -581,16 +561,16 @@ Emacs has built-in programming language for Lisp, Scheme, DSSSL, Ada, ASM, AWK, 
 ** AUCTeX
 A major LaTeX mode for Emacs
 #+begin_src emacs-lisp
-(use-package auctex)
+;; (use-package auctex)
 #+end_src
 
 ** CDLaTeX
 A minor mode that is used in combination with AUCTex. It can auto insert specific environments and templates for Math functions.
 #+begin_src emacs-lisp
-(use-package cdlatex)
+;; (use-package cdlatex)
 
 ;; Enabling CDLaTeX mode universally for all org files.
-(add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+;; (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
 #+end_src
 
 * LSP
@@ -812,12 +792,6 @@ Get the ability, to toggle the terminal on demand rather than spawning a new one
             (display-buffer-reuse-window display-buffer-at-bottom)
             (reusable-framse . visible)
             (window-height . 0.3))))
-#+end_src
-
-* CODE SNIPPETS
-#+begin_src emacs-lisp
-(use-package yasnippet)
-(yas-global-mode 1)
 #+end_src
 
 * SUDO EDIT

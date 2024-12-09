@@ -52,7 +52,7 @@
     }@inputs:
     let
       system = "x86_64-linux";
-      host = "based";
+      host = "dragneel";
       username = "cylis";
     in
     {
@@ -67,7 +67,6 @@
           modules = [
             ./hosts/${host}/config.nix
             inputs.stylix.nixosModules.stylix
-            home-manager.nixosModules.home-manager
             (
               { pkgs, ... }:
               {
@@ -80,26 +79,29 @@
                   pkgs.niri-unstable
                   inputs.umu.packages.${pkgs.system}.umu
                 ];
-                home-manager.extraSpecialArgs = {
-                  inherit username;
-                  inherit inputs;
-                  inherit host;
-                  inherit spicetify-nix;
-                  pkgs-stable = import nixpkgs-stable {
-                    inherit system;
-                    inherit inputs;
-                    inherit username;
-                    inherit host;
-                    config.allowUnfree = true;
-                  };
-                };
-                home-manager.useGlobalPkgs = true;
-                home-manager.useUserPackages = true;
-                home-manager.backupFileExtension = "bak";
-                home-manager.users.${username} = import ./hosts/${host}/home.nix;
               }
             )
           ];
+        };
+      };
+
+      homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.${system};
+        modules = [
+          ./hosts/${host}/home.nix
+          inputs.stylix.homeManagerModules.stylix
+        ];
+        extraSpecialArgs = {
+          inherit
+            inputs
+            username
+            host
+            spicetify-nix
+            ;
+          pkgs-stable = import nixpkgs-stable {
+            inherit system;
+            config.allowUnfree = true;
+          };
         };
       };
     };

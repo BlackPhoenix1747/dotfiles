@@ -97,7 +97,7 @@
     cursor.size = 24;
     fonts = {
       monospace = {
-        package = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
+        package = pkgs.nerd-fonts.jetbrains-mono;
         name = "JetBrainsMono Nerd Font Mono";
       };
       sansSerif = {
@@ -262,9 +262,8 @@
     pass
     wezterm
     rmpc
-    xournal
+    xournalpp
     scrot
-    zellij
     thefuck # Favorite package btw
     # aseprite
     # libresprite
@@ -312,17 +311,26 @@
     cloudflare-warp
     stremio
     rofi-pass
-    factorio-headless
     corectrl
     yt-dlp
     ytfzf
-    nushell
-    carapace
     localsend
     gpodder
     geany
     waypaper
     zoom-us
+    gapless
+    home-manager
+    dolphin-emu
+    duckstation
+    retroarch-full
+    heroic
+    autorandr
+    xorg.libxcvt
+    mangohud
+    goverlay
+    gpu-screen-recorder-gtk
+    youtube-music
     (emacsWithPackagesFromUsePackage {
       package = pkgs.emacs-git;
       config = ../../config/emacs/init.el;
@@ -377,6 +385,9 @@
         epkgs.lsp-ivy
         epkgs.dap-mode
         epkgs.obsidian
+        epkgs.direnv
+        epkgs.counsel-projectile
+        epkgs.wakatime-mode
       ];
     })
     #Awesome related
@@ -406,12 +417,14 @@
       material-icons
       victor-mono
       iosevka
+      departure-mono
     ];
   };
 
   environment.variables = {
     CYLISOS_VERSION = "1.0";
     CYLISOS = "true";
+    ROC_ENABLE_PRE_VEGA = "1";
   };
 
   environment.pathsToLink = [ "/share/zsh" ];
@@ -423,10 +436,13 @@
     extraPortals = [
       pkgs.xdg-desktop-portal-gtk
       pkgs.xdg-desktop-portal
+      pkgs.xdg-desktop-portal-hyprland
+      pkgs.xdg-desktop-portal-wlr
     ];
     configPackages = [
       pkgs.xdg-desktop-portal-gtk
       pkgs.xdg-desktop-portal-hyprland
+      pkgs.xdg-desktop-portal-wlr
       pkgs.xdg-desktop-portal
     ];
   };
@@ -434,7 +450,7 @@
   # Services to start
   services = {
     cloudflare-warp.enable = true;
-    emacs.enable = true;
+    emacs.enable = false;
     kanata = {
       enable = true;
       keyboards = {
@@ -462,6 +478,7 @@
     tailscale.enable = true;
     xserver = {
       enable = true;
+      videoDrivers = [ "amdgpu" ];
       displayManager.startx.enable = true;
       desktopManager = {
         xfce = {
@@ -537,6 +554,11 @@
   systemd.services.mpd.environment = {
     XDG_RUNTIME_DIR = "/run/user/${toString config.users.users.cylis.uid}";
   };
+  systemd.user.services.xdg-desktop-portal = {
+    environment = {
+      XDG_CURRENT_DESKTOP = "KDE";
+    };
+  };
   hardware.sane = {
     enable = true;
     extraBackends = [ pkgs.sane-airscan ];
@@ -584,6 +606,7 @@
       substituters = [
         "https://cache.garnix.io"
         "https://ghostty.cachix.org"
+        "https://niri.cachix.org"
         "https://hyprland.cachix.org"
         "https://nix-community.cachix.org"
       ];
@@ -592,6 +615,7 @@
         "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
         "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
       ];
     };
     gc = {
@@ -612,6 +636,10 @@
   # OpenGL
   hardware.graphics = {
     enable = true;
+    extraPackages = with pkgs; [
+      rocmPackages.clr.icd
+      amdvlk
+    ];
   };
   # Open ports in the firewall.
   networking.firewall.allowedTCPPorts = [ 53317 ];

@@ -2,9 +2,6 @@ local lspconfig = require("lspconfig")
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 local util = require("lspconfig/util")
 local function on_attach(client, bufnr)
-	local function opts(desc)
-		return { buffer = bufnr, desc = "LSP " .. desc }
-	end
 	if client.server_capabilities.inlayHintProvider then
 		vim.lsp.inlay_hint.enable(true)
 	end
@@ -121,6 +118,12 @@ lspconfig.elixirls.setup({
 	capabilities = capabilities,
 	on_attach = on_attach,
 	cmd = { "elixir-ls" },
+})
+lspconfig.ts_ls.setup({
+	capabilities = capabilities,
+	on_attach = on_attach,
+	filetypes = { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx" },
+	cmd = { "typescript-language-server", "--stdio" },
 })
 
 vim.keymap.set("n", "<leader>lh", vim.lsp.buf.hover, { desc = "Hovering definition" })

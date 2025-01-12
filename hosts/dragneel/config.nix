@@ -147,6 +147,7 @@
   };
 
   programs = {
+    zsh.enable = true;
     nano.enable = false;
     gamemode.enable = true;
     dconf.enable = true;
@@ -160,9 +161,13 @@
     virt-manager.enable = true;
     steam = {
       enable = true;
-      gamescopeSession.enable = true;
       remotePlay.openFirewall = true;
       dedicatedServer.openFirewall = true;
+      localNetworkGameTransfers.openFirewall = true;
+    };
+    gamescope = {
+      enable = true;
+      capSysNice = true;
     };
     thunar = {
       enable = true;
@@ -449,6 +454,7 @@
 
   # Services to start
   services = {
+    timesyncd.enable = true;
     cloudflare-warp.enable = true;
     emacs.enable = false;
     kanata = {
@@ -512,7 +518,11 @@
     libinput.enable = true;
     fstrim.enable = true;
     gvfs.enable = true;
-    openssh.enable = true;
+    openssh = {
+      enable = true;
+      settings.PasswordAuthentication = false;
+      settings.KbdInteractiveAuthentication = false;
+    };
     flatpak.enable = true;
     printing = {
       enable = true;

@@ -162,6 +162,7 @@ in
   home.packages = [
     inputs.jerry.packages.${pkgs.system}.default
     (import ../../scripts/emopicker9000.nix { inherit pkgs; })
+    (import ../../scripts/pdf-viewer.nix { inherit pkgs; })
     (import ../../scripts/task-waybar.nix { inherit pkgs; })
     (import ../../scripts/battery.nix { inherit pkgs; })
     (import ../../scripts/proj.nix { inherit pkgs; })

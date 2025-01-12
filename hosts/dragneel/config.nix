@@ -17,6 +17,7 @@
     ../../modules/vm-guest-services.nix
     ../../modules/local-hardware-clock.nix
     ../../modules/overlays.nix
+    # ../../modules/hilbish.nix
   ];
 
   boot = {

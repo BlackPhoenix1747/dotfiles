@@ -7,9 +7,9 @@
         😄 grinning face with smiling eyes face happy joy funny haha laugh like :D :) smile
         😁 beaming face with smiling eyes face happy smile joy kawaii
         😆 grinning squinting face happy joy lol satisfied haha face glad XD laugh
-        😅 grinning face with sweat face hot happy laugh sweat smile relief
+        😅 nervous grinning face with sweat face hot happy laugh sweat smile relief
         🤣 rolling on the floor laughing face rolling floor laughing lol haha rofl
-        😂 face with tears of joy face cry tears weep happy happytears haha
+        😂 lol face with tears of joy face cry tears weep happy happytears haha
         🙂 slightly smiling face face smile
         🙃 upside down face face flipped silly smile
         😉 winking face face happy mischievous secret ;) smile eye
@@ -79,7 +79,7 @@
         😰 anxious face with sweat face nervous sweat
         😥 sad but relieved face face phew sweat nervous
         😢 crying face face tears sad depressed upset :'(
-        😭 loudly crying face face cry tears sad upset depressed
+        😭 sob loudly crying face face cry tears sad upset depressed
         😱 face screaming in fear face munch scared omg
         😖 confounded face face confused sick unwell oops :S
         😣 persevering face face sick no upset oops

@@ -28,7 +28,7 @@ in
   disableConfirmationPrompt = true;
   keyMode = "vi";
   secureSocket = true; # temp
-  shell = "${pkgs.nushell}/bin/nu";
+  shell = "${pkgs.zsh}/bin/zsh";
   prefix = "C-s";
   plugins = with pkgs.tmuxPlugins; [
     resurrect

@@ -33,6 +33,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # base16.url = "github:SenchoPens/base16.nix";
+    hyprpanel.url = "github:jas-singhfsu/hyprpanel";
+    hyprpanel.inputs.nixpkgs.follows = "nixpkgs";
     # This is required for plugin support.
     # hyprland.url = "git+https://github.com/hyprwm/Hyprland?submodules=1";
     # hyprland-plugins = {
@@ -86,10 +88,24 @@
       };
 
       homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.${system};
+        # pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [
+            inputs.hyprpanel.overlay
+          ];
+        };
         modules = [
+          {
+            nixpkgs.overlays = [
+            ];
+          }
           ./hosts/${host}/home.nix
           inputs.stylix.homeManagerModules.stylix
+          inputs.hyprpanel.homeManagerModules.hyprpanel
+          inputs.jerry.homeManagerModules.default
+          inputs.spicetify-nix.homeManagerModules.default
+          inputs.nyaa.homeManagerModule
         ];
         extraSpecialArgs = {
           inherit

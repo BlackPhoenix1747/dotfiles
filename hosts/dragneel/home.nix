@@ -3,6 +3,7 @@
   username,
   host,
   inputs,
+  lib,
   ...
 }:
 let
@@ -13,6 +14,22 @@ in
   home.username = "${username}";
   home.homeDirectory = "/home/${username}";
   home.stateVersion = "23.11";
+  home.activation = {
+    postActivateScript = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      if [ -f "/home/${username}/.config/emacs/config.el" ]; then
+        rm /home/${username}/.config/emacs/config.el
+      fi
+      if [[ "$0" == *zsh ]]; then
+        source ~/.zshrc
+      fi
+      if [[ "$0" == *bash ]]; then
+        source ~/.bashrc
+      fi
+      if [[ "$0" == *nushell ]]; then
+        source ~/.config/nushell/config.nu
+      fi
+    '';
+  };
 
   # Import Program Configurations
   imports = [
@@ -27,9 +44,7 @@ in
     ../../config/wlogout.nix
     ../../config/starship/starship.nix
     ../../config/nushell.nix
-    inputs.jerry.homeManagerModules.default
-    inputs.spicetify-nix.homeManagerModules.default
-    inputs.nyaa.homeManagerModule
+    ../../modules/overlays.nix
   ];
 
   # Place Files Inside Home Directory
@@ -113,6 +128,9 @@ in
     };
   };
 
+  nixpkgs.config = {
+    allowUnfree = true;
+  };
   xsession = {
     windowManager = {
       awesome = {
@@ -139,6 +157,70 @@ in
     neovim.enable = false;
     tmux.enable = false;
     vesktop.enable = false;
+  };
+
+  stylix = {
+    enable = true;
+    image = ../../config/wallpapers/law.jpg;
+    base16Scheme = {
+      # base00 = "1e1e2e"; # base
+      # base01 = "181825"; # mantle
+      # base02 = "313244"; # surface0
+      # base03 = "45475a"; # surface1
+      # base04 = "585b70"; # surface2
+      # base05 = "cdd6f4"; # text
+      # base06 = "f5e0dc"; # rosewater
+      # base07 = "b4befe"; # lavender
+      # base08 = "f38ba8"; # red
+      # base09 = "fab387"; # peach
+      # base0A = "f9e2af"; # yellow
+      # base0B = "a6e3a1"; # green
+      # base0C = "94e2d5"; # teal
+      # base0D = "89b4fa"; # blue
+      # base0E = "cba6f7"; # mauve
+      # base0F = "f2cdcd"; # flamingo
+      base00 = "24283B";
+      base01 = "16161E";
+      base02 = "343A52";
+      base03 = "444B6A";
+      base04 = "787C99";
+      base05 = "A9B1D6";
+      base06 = "CBCCD1";
+      base07 = "D5D6DB";
+      base08 = "C0CAF5";
+      base09 = "A9B1D6";
+      base0A = "0DB9D7";
+      base0B = "9ECE6A";
+      base0C = "B4F9F8";
+      base0D = "2AC3DE";
+      base0E = "BB9AF7";
+      base0F = "F7768E";
+    };
+    polarity = "dark";
+    opacity.terminal = 0.8;
+    cursor.package = pkgs.banana-cursor;
+    cursor.name = "Banana";
+    cursor.size = 24;
+    fonts = {
+      monospace = {
+        package = pkgs.nerd-fonts.jetbrains-mono;
+        name = "JetBrainsMono Nerd Font Mono";
+      };
+      sansSerif = {
+        package = pkgs.montserrat;
+        name = "Montserrat";
+      };
+      serif = {
+        package = pkgs.montserrat;
+        name = "Montserrat";
+      };
+      sizes = {
+        applications = 12;
+        terminal = 15;
+        desktop = 11;
+        popups = 12;
+      };
+    };
   };
   gtk = {
     iconTheme = {
@@ -186,6 +268,7 @@ in
       inherit pkgs;
       inherit host;
     })
+    pkgs.hyprpanel
   ];
 
   programs.nyaa = {
@@ -255,6 +338,12 @@ in
   };
 
   programs = {
+    # hyprpanel = {
+    #   enable = true;
+    #   systemd.enable = true;
+    #   hyprland.enable = true;
+    #   # overwrite.enable = true;
+    # };
     carapace = {
       enable = true;
       enableNushellIntegration = true;
@@ -349,7 +438,7 @@ in
       };
     };
     kitty = {
-      enable = true;
+      enable = false;
       package = pkgs.kitty;
       settings = {
         scrollback_lines = 2000;
@@ -382,6 +471,7 @@ in
         sv = "sudo nvim";
         fr = "nh os switch --hostname ${host} /home/${username}/cylisos";
         fu = "nh os switch --hostname ${host} --update /home/${username}/cylisos";
+        hms = "nh home switch /home/${username}/cylisos/";
         ncg = "nix-collect-garbage --delete-old && sudo nix-collect-garbage -d && sudo /run/current-system/bin/switch-to-configuration boot";
         v = "nvim";
         cat = "bat";
@@ -391,6 +481,7 @@ in
         ".." = "cd ..";
         host = "nvim ~/cylisos/hosts/${host}/";
         config = "nvim ~/cylisos/config/";
+        rl = "source /home/${username}/.bashrc";
         oo = "cd /home/${username}/Documents/Main/";
         orv = "nvim '/home/${username}/Documents/Main/01 - Rough Notes/'*";
         lz = "lazygit";
@@ -405,6 +496,7 @@ in
         sv = "sudo nvim";
         fr = "nh os switch --hostname ${host} /home/${username}/cylisos";
         fu = "nh os switch --hostname ${host} --update /home/${username}/cylisos";
+        hms = "nh home switch /home/${username}/cylisos/";
         ncg = "nix-collect-garbage --delete-old && sudo nix-collect-garbage -d && sudo /run/current-system/bin/switch-to-configuration boot";
         v = "nvim";
         cat = "bat";
@@ -417,7 +509,6 @@ in
         py-virt = "source .venv/bin/activate";
         py-virtc = "python3 -m venv .venv";
         rl = "source ~/.zshrc";
-        zl = "zellij";
         cmc = "cmus-remote -C 'clear'";
         cma = "cmus-remote -C 'add ~/Music";
         cmu = "cmus-remote -C 'update-cache -f'";
@@ -428,6 +519,9 @@ in
         oo = "cd /home/${username}/Documents/Main/";
         orv = "nvim '/home/${username}/Documents/Main/01 - Rough Notes/'*";
         lz = "lazygit";
+        emd = "emacs --daemon";
+        emc = "emacsclient -c .";
+        zed = "zeditor --foreground ./";
       };
       defaultKeymap = "emacs";
       history = {

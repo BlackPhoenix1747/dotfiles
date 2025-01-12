@@ -1,3 +1,4 @@
+
 #+TITLE: Cylis' GNU Emacs Config
 #+AUTHOR: Cylis Dragneel (Taha Ahmad)
 #+description: cylis' personal emacs config.
@@ -12,9 +13,11 @@
 - [[#all-the-fonts][ALL THE FONTS]]
 - [[#backup][BACKUP]]
 - [[#company][COMPANY]]
+- [[#clipboard][CLIPBOARD]]
 - [[#dashboard][DASHBOARD]]
 - [[#diminish][DIMINISH]]
 - [[#dired][DIRED]]
+- [[#direnv][DIRENV]]
 - [[#elfeed][ELFEED]]
 - [[#flycheck][FLYCHECK]]
 - [[#fonts][FONTS]]
@@ -57,6 +60,7 @@
 - [[#theme][THEME]]
 - [[#tldr][TLDR]]
 - [[#transparency][Transparency]]
+- [[#wakatime][WAKATIME]]
 - [[#which-key][WHICH-KEY]]
 - [[#end][End]]
 
@@ -122,21 +126,44 @@ By default, Emacs creates automatic backups of files in their original directori
 * COMPANY
 Company is a text completion framework for Emacs. The name stands for “complete anything”.  Completion will start automatically after you type a few letters. Use M-n and M-p to select, <return> to complete or <tab> to complete the common part.
 #+begin_src emacs-lisp
-(use-package company
-  :defer 2
-  :diminish
-  :custom
-  (company-begin-commands '(self-insert-command))
-  (company-idle-delay .1)
-  (company-minimum-prefix-length 2)
-  (company-show-numbers t)
-  (company-tooltip-align-annotations 't)
-  (global-company-mode t))
+    (use-package company
+      :after lsp-mode
+      :hook (lsp-mode . company-mode)
+      :diminish
+      :bind (:map company-active-map
+    		  ("<tab>" . company-complete-selection))
+            (:map lsp-mode-map
+                ("<tab>" . company-indent-or-complete-common))
+      :custom
+      (company-begin-commands '(self-insert-command))
+      (company-idle-delay 0.0)
+      (company-minimum-prefix-length 1)
+      (company-tooltip-align-annotations 't)
+      (global-company-mode t))
 
-(use-package company-box
-  :after company
-  :diminish
-  :hook (company-mode . company-box-mode))
+    (use-package company-box
+      :after company
+      :diminish
+      :hook (company-mode . company-box-mode))
+#+end_src
+
+* CLIPBOARD
+#+begin_src emacs-lisp
+(setq wl-copy-process nil)
+(defun wl-copy (text)
+  (setq wl-copy-process (make-process :name "wl-copy"
+                                      :buffer nil
+                                      :command '("wl-copy" "-f" "-n")
+                                      :connection-type 'pipe
+                                      :noquery t))
+  (process-send-string wl-copy-process text)
+  (process-send-eof wl-copy-process))
+(defun wl-paste ()
+  (if (and wl-copy-process (process-live-p wl-copy-process))
+      nil ; should return nil if we're the current paste owner
+      (shell-command-to-string "wl-paste -n | tr -d \r")))
+(setq interprogram-cut-function 'wl-copy)
+(setq interprogram-paste-function 'wl-paste)
 #+end_src
 
 * DASHBOARD
@@ -188,6 +215,13 @@ This package implements hiding or abbreviation of the modeline displays (lighter
     (evil-define-key 'normal dired-mode-map (kbd "l") 'dired-open-file)
     (evil-define-key 'normal peep-dired-mode-map (kbd "j") 'peep-dired-next-file)
     (evil-define-key 'normal peep-dired-mode-map (kbd "k") 'peep-dired-prev-file))
+#+end_src
+
+* DIRENV
+#+begin_src emacs-lisp
+    (use-package direnv
+      :config
+      (direnv-mode))
 #+end_src
 
 * ELFEED
@@ -266,198 +300,203 @@ You can use CTRL plus -/= to zoom into the text or zoom out
 * GENERAL KEYBINDINGS
 Basic Keybindings, these keybindings use Space key as the leader key (meaning all keybindings in this section start with space). The bindings use the general and which-key plugin.
 #+begin_src emacs-lisp
-(use-package general
-  :config
-  (general-evil-setup)
+  (use-package general
+    :config
+    (general-evil-setup)
 
-  ;; set up 'SPC' as the global leader key
-  (general-create-definer cylis/leader-keys
-    :states '(normal insert visual emacs)
-    :keymaps 'override
-    :prefix "SPC" ;; set leader
-    :global-prefix "M-SPC") ;; access leader in insert mode
+    ;; set up 'SPC' as the global leader key
+    (general-create-definer cylis/leader-keys
+      :states '(normal insert visual emacs)
+      :keymaps 'override
+      :prefix "SPC" ;; set leader
+      :global-prefix "M-SPC") ;; access leader in insert mode
 
-  (cylis/leader-keys
-    "SPC" '(counsel-M-x :wk "Counsel M-x")
-    "=" '(perspective-map :wk "Perspective") ;; Lists all the perspective keybindings
-    "u" '(universal-argument :wk "Universal argument")
-    "f" '(:ignore t :wk "Files")
-    "f f" '(find-file :wk "Find File")
-    "f c" '((lambda () (interactive) (find-file "~/.config/emacs/config.org")) :wk "Edit Emacs Config")
-    "f d" '(find-grep-dired :wk "Search for string in files in DIR")
-    "f g" '(counsel-grep-or-swiper :wk "Search for string current file")
-    "f j" '(counsel-file-jump :wk "Jump to a file below current directory")
-    "f l" '(counsel-locate :wk "Locate a file")
-    "f r" '(counsel-recentf :wk "Find recent files")
-    "f u" '(sudo-edit-find-file :wk "Sudo find file")
-    "f U" '(sudo-edit :wk "Sudo edit file")
-    "f r" '(counsel-recentf :wk "Find Recent Files")
-    "c" '(comment-line :wk "Comment Lines"))
+    (cylis/leader-keys
+      "SPC" '(counsel-M-x :wk "Counsel M-x")
+      "=" '(perspective-map :wk "Perspective") ;; Lists all the perspective keybindings
+      "u" '(universal-argument :wk "Universal argument")
+      "f" '(:ignore t :wk "Files")
+      "f f" '(find-file :wk "Find File")
+      "f n" '(:ignore t :wk "Nix Config")
+      "f n f" '((lambda () (interactive) (find-file "~/cylisos/hosts/dragneel/config.nix")) :wk "Edit Configuration.nix")
+      "f n h" '((lambda () (interactive) (find-file "~/cylisos/hosts/dragneel/home.nix")) :wk "Edit Home.nix")
+      "f n n" '((lambda () (interactive) (find-file "~/cylisos/flake.nix")) :wk "Edit Flake.nix")
+      "f n c" '((lambda () (interactive) (find-file "~/cylisos/config/")) :wk "Edit Home Configurations")
+      "f c" '((lambda () (interactive) (find-file "~/cylisos/config/emacs/config.org")) :wk "Edit Emacs Config")
+      "f d" '(find-grep-dired :wk "Search for string in files in DIR")
+      "f g" '(counsel-grep-or-swiper :wk "Search for string current file")
+      "f j" '(counsel-file-jump :wk "Jump to a file below current directory")
+      "f l" '(counsel-locate :wk "Locate a file")
+      "f r" '(counsel-recentf :wk "Find recent files")
+      "f u" '(sudo-edit-find-file :wk "Sudo find file")
+      "f U" '(sudo-edit :wk "Sudo edit file")
+      "f r" '(counsel-recentf :wk "Find Recent Files")
+      "c" '(comment-line :wk "Comment Lines"))
 
-  (cylis/leader-keys
-    "b" '(:ignore t :wk "buffer")
-    "b c" '(clone-indirect-buffer :wk "Create indirect buffer copy in a split")
-    "b C" '(clone-indirect-buffer-other-window :wk "Clone indirect buffer in new window")
-    "b d" '(bookmark-delete :wk "Delete bookmark")
-    "b b" '(switch-to-buffer :wk "Switch Buffer")
-    "b i" '(ibuffer :wk "IBuffer")
-    "b k" '(kill-this-buffer :wk "Kill this Buffer")
-    "b n" '(next-buffer :wk "Next Buffer")
-    "b p" '(previous-buffer :wk "Previous Buffer")
-    "b r" '(revert-buffer :wk "Reload Buffer")
-    "b l" '(list-bookmarks :wk "List bookmarks")
-    "b m" '(bookmark-set :wk "Set bookmark")
-    "b R" '(rename-buffer :wk "Rename buffer")
-    "b s" '(basic-save-buffer :wk "Save buffer")
-    "b S" '(save-some-buffers :wk "Save multiple buffers")
-    "b w" '(bookmark-save :wk "Save current bookmarks to bookmark file"))
+    (cylis/leader-keys
+      "b" '(:ignore t :wk "buffer")
+      "b c" '(clone-indirect-buffer :wk "Create indirect buffer copy in a split")
+      "b C" '(clone-indirect-buffer-other-window :wk "Clone indirect buffer in new window")
+      "b d" '(bookmark-delete :wk "Delete bookmark")
+      "b b" '(switch-to-buffer :wk "Switch Buffer")
+      "b i" '(ibuffer :wk "IBuffer")
+      "b k" '(kill-this-buffer :wk "Kill this Buffer")
+      "b n" '(next-buffer :wk "Next Buffer")
+      "b p" '(previous-buffer :wk "Previous Buffer")
+      "b r" '(revert-buffer :wk "Reload Buffer")
+      "b l" '(list-bookmarks :wk "List bookmarks")
+      "b m" '(bookmark-set :wk "Set bookmark")
+      "b R" '(rename-buffer :wk "Rename buffer")
+      "b s" '(basic-save-buffer :wk "Save buffer")
+      "b S" '(save-some-buffers :wk "Save multiple buffers")
+      "b w" '(bookmark-save :wk "Save current bookmarks to bookmark file"))
 
-  (cylis/leader-keys
-    "d" '(:ignore t :wk "Dired")
-    "d d" '(dired :wk "Open dired")
-    "d j" '(dired-jump :wk "Dired jump to current")
-    "d n" '(neotree-dir :wk "Open directory in neotree")
-    "d p" '(peep-dired :wk "Peep-dired"))
+    (cylis/leader-keys
+      "d" '(:ignore t :wk "Dired")
+      "d d" '(dired :wk "Open dired")
+      "d j" '(dired-jump :wk "Dired jump to current")
+      "d n" '(neotree-dir :wk "Open directory in neotree")
+      "d p" '(peep-dired :wk "Peep-dired"))
 
-  (cylis/leader-keys
-    "v" '(:ignore t :wk "Evaluate")
-    "v b" '(eval-buffer :wk "Evaluate elisp in Buffer")
-    "v d" '(eval-defun :wk "Evaluate defun containing or after point")
-    "v e" '(eval-expression :wk "Evaluate and elisp expression")
-    "v l" '(eval-last-sexp :wk "Evaluate elisp expression before point")
-    "v r" '(eval-region :wk "Evaluate elisp in region"))
+    (cylis/leader-keys
+      "v" '(:ignore t :wk "Evaluate")
+      "v b" '(eval-buffer :wk "Evaluate elisp in Buffer")
+      "v d" '(eval-defun :wk "Evaluate defun containing or after point")
+      "v e" '(eval-expression :wk "Evaluate and elisp expression")
+      "v l" '(eval-last-sexp :wk "Evaluate elisp expression before point")
+      "v r" '(eval-region :wk "Evaluate elisp in region"))
 
-  (cylis/leader-keys
-    "h" '(:ignore t :wk "Help")
-    "h a" '(counsel-apropos :wk "Apropos")
-    "h b" '(describe-bindings :wk "Describe bindings")
-    "h c" '(describe-char :wk "Describe character under cursor")
-    "h d" '(:ignore t :wk "Emacs documentation")
-    "h d a" '(about-emacs :wk "About Emacs")
-    "h d d" '(view-emacs-debugging :wk "View Emacs debugging")
-    "h d f" '(view-emacs-FAQ :wk "View Emacs FAQ")
-    "h d m" '(info-emacs-manual :wk "The Emacs manual")
-    "h d n" '(view-emacs-news :wk "View Emacs news")
-    "h d o" '(describe-distribution :wk "How to obtain Emacs")
-    "h d p" '(view-emacs-problems :wk "View Emacs problems")
-    "h d t" '(view-emacs-todo :wk "View Emacs todo")
-    "h d w" '(describe-no-warranty :wk "Describe no warranty")
-    "h e" '(view-echo-area-messages :wk "View echo area messages")
-    "h f" '(describe-function :wk "Describe function")
-    "h F" '(describe-face :wk "Describe face")
-    "h g" '(describe-gnu-project :wk "Describe GNU Project")
-    "h i" '(info :wk "Info")
-    "h I" '(describe-input-method :wk "Describe input method")
-    "h k" '(describe-key :wk "Describe key")
-    "h l" '(view-lossage :wk "Display recent keystrokes and the commands run")
-    "h L" '(describe-language-environment :wk "Describe language environment")
-    "h m" '(describe-mode :wk "Describe mode")
-    "h t" '(load-theme :wk "Load Themes")
-    "h v" '(describe-variable :wk "Describe variable")
-    "h r r" '((lambda () (interactive) (load-file "~/.config/emacs/init.el")) :wk "Reload emacs config")
-    "h w" '(where-is :wk "Prints keybinding for command if set")
-    "h x" '(describe-command :wk "Display full documentation for command"))
+    (cylis/leader-keys
+      "h" '(:ignore t :wk "Help")
+      "h a" '(counsel-apropos :wk "Apropos")
+      "h b" '(describe-bindings :wk "Describe bindings")
+      "h c" '(describe-char :wk "Describe character under cursor")
+      "h d" '(:ignore t :wk "Emacs documentation")
+      "h d a" '(about-emacs :wk "About Emacs")
+      "h d d" '(view-emacs-debugging :wk "View Emacs debugging")
+      "h d f" '(view-emacs-FAQ :wk "View Emacs FAQ")
+      "h d m" '(info-emacs-manual :wk "The Emacs manual")
+      "h d n" '(view-emacs-news :wk "View Emacs news")
+      "h d o" '(describe-distribution :wk "How to obtain Emacs")
+      "h d p" '(view-emacs-problems :wk "View Emacs problems")
+      "h d t" '(view-emacs-todo :wk "View Emacs todo")
+      "h d w" '(describe-no-warranty :wk "Describe no warranty")
+      "h e" '(view-echo-area-messages :wk "View echo area messages")
+      "h f" '(describe-function :wk "Describe function")
+      "h F" '(describe-face :wk "Describe face")
+      "h g" '(describe-gnu-project :wk "Describe GNU Project")
+      "h i" '(info :wk "Info")
+      "h I" '(describe-input-method :wk "Describe input method")
+      "h k" '(describe-key :wk "Describe key")
+      "h l" '(view-lossage :wk "Display recent keystrokes and the commands run")
+      "h L" '(describe-language-environment :wk "Describe language environment")
+      "h m" '(describe-mode :wk "Describe mode")
+      "h t" '(load-theme :wk "Load Themes")
+      "h v" '(describe-variable :wk "Describe variable")
+      "h r r" '((lambda () (interactive) (load-file "~/.config/emacs/init.el")) :wk "Reload emacs config")
+      "h w" '(where-is :wk "Prints keybinding for command if set")
+      "h x" '(describe-command :wk "Display full documentation for command"))
 
-  (cylis/leader-keys
-    "g" '(:ignore t :wk "Git")    
-    "g /" '(magit-displatch :wk "Magit dispatch")
-    "g ." '(magit-file-displatch :wk "Magit file dispatch")
-    "g b" '(magit-branch-checkout :wk "Switch branch")
-    "g c" '(:ignore t :wk "Create") 
-    "g c b" '(magit-branch-and-checkout :wk "Create branch and checkout")
-    "g c c" '(magit-commit-create :wk "Create commit")
-    "g c f" '(magit-commit-fixup :wk "Create fixup commit")
-    "g C" '(magit-clone :wk "Clone repo")
-    "g f" '(:ignore t :wk "Find") 
-    "g f c" '(magit-show-commit :wk "Show commit")
-    "g f f" '(magit-find-file :wk "Magit find file")
-    "g f g" '(magit-find-git-config-file :wk "Find gitconfig file")
-    "g F" '(magit-fetch :wk "Git fetch")
-    "g g" '(magit-status :wk "Magit status")
-    "g i" '(magit-init :wk "Initialize git repo")
-    "g l" '(magit-log-buffer-file :wk "Magit buffer log")
-    "g r" '(vc-revert :wk "Git revert file")
-    "g s" '(magit-stage-file :wk "Git stage file")
-    "g t" '(git-timemachine :wk "Git time machine")
-    "g u" '(magit-stage-file :wk "Git unstage file"))
+    (cylis/leader-keys
+      "g" '(:ignore t :wk "Git")    
+      "g /" '(magit-displatch :wk "Magit dispatch")
+      "g ." '(magit-file-displatch :wk "Magit file dispatch")
+      "g b" '(magit-branch-checkout :wk "Switch branch")
+      "g c" '(:ignore t :wk "Create") 
+      "g c b" '(magit-branch-and-checkout :wk "Create branch and checkout")
+      "g c c" '(magit-commit-create :wk "Create commit")
+      "g c f" '(magit-commit-fixup :wk "Create fixup commit")
+      "g C" '(magit-clone :wk "Clone repo")
+      "g f" '(:ignore t :wk "Find") 
+      "g f c" '(magit-show-commit :wk "Show commit")
+      "g f f" '(magit-find-file :wk "Magit find file")
+      "g f g" '(magit-find-git-config-file :wk "Find gitconfig file")
+      "g F" '(magit-fetch :wk "Git fetch")
+      "g g" '(magit-status :wk "Magit status")
+      "g i" '(magit-init :wk "Initialize git repo")
+      "g l" '(magit-log-buffer-file :wk "Magit buffer log")
+      "g r" '(vc-revert :wk "Git revert file")
+      "g s" '(magit-stage-file :wk "Git stage file")
+      "g t" '(git-timemachine :wk "Git time machine")
+      "g u" '(magit-stage-file :wk "Git unstage file"))
 
-  (cylis/leader-keys
-    "e" '(:ignore t :wk "Eshell")
-    "e s" '(eshell :wk "Launch Eshell")
-    "e h" '(counsel-esh-history :wk "Eshell History")
-    "e w" '(eww :wk "EWW Emacs Browser")
-    "e r" '(eww-reload :wk "Reload Page in EWW"))
+    (cylis/leader-keys
+      "e" '(:ignore t :wk "Eshell")
+      "e s" '(eshell :wk "Launch Eshell")
+      "e h" '(counsel-esh-history :wk "Eshell History")
+      "e w" '(eww :wk "EWW Emacs Browser")
+      "e r" '(eww-reload :wk "Reload Page in EWW"))
 
-  (cylis/leader-keys
-    "l" '(:ignore t :wk "LSP")
-    "l p" '(lsp-keymap :wk "Keymap"))
+    (cylis/leader-keys
+      "l" '(:ignore t :wk "LSP")
+      "l p" '(lsp-keymap :wk "Keymap"))
 
-  (cylis/leader-keys
-    "o" '(:ignore t :wk "Org")
-    "o a" '(org-agenda :wk "Org agenda")
-    "o e" '(org-export-dispatch :wk "Org export dispatch")
-    "o i" '(org-toggle-item :wk "Org toggle item")
-    ;; This is necessarry as sometimes org mode glitches out(showing asterisks in subheadings) requiring it to be restarted.
-    "o r" '(org-mode-restart :wk "Restart Org Mode")
-    "o t" '(org-todo :wk "Org todo")
-    "o B" '(org-babel-tangle :wk "Org babel tangle")
-    "o T" '(org-todo-list :wk "Org todo list"))
+    (cylis/leader-keys
+      "o" '(:ignore t :wk "Org")
+      "o a" '(org-agenda :wk "Org agenda")
+      "o e" '(org-export-dispatch :wk "Org export dispatch")
+      "o i" '(org-toggle-item :wk "Org toggle item")
+      ;; This is necessarry as sometimes org mode glitches out(showing asterisks in subheadings) requiring it to be restarted.
+      "o r" '(org-mode-restart :wk "Restart Org Mode")
+      "o t" '(org-todo :wk "Org todo")
+      "o B" '(org-babel-tangle :wk "Org babel tangle")
+      "o T" '(org-todo-list :wk "Org todo list"))
 
-  (cylis/leader-keys
-    "o b" '(:ignore t :wk "Tables")
-    "o b -" '(org-table-insert-hline :wk "Insert hline in table"))
+    (cylis/leader-keys
+      "o b" '(:ignore t :wk "Tables")
+      "o b -" '(org-table-insert-hline :wk "Insert hline in table"))
 
-  (cylis/leader-keys
-    "o d" '(:ignore t :wk "Date/deadline")
-    "o d t" '(org-time-stamp :wk "Org time stamp"))
+    (cylis/leader-keys
+      "o d" '(:ignore t :wk "Date/deadline")
+      "o d t" '(org-time-stamp :wk "Org time stamp"))
 
-  (cylis/leader-keys
-    "o l" '(:ignore t :wk "LaTeX")
-    "o l e" '(org-latex-export-to-pdf :wk "Export as PDF")
-    "o l p" '(org-latex-preview :wk "Preview LaTeX"))
+    (cylis/leader-keys
+      "o l" '(:ignore t :wk "LaTeX")
+      "o l e" '(org-latex-export-to-pdf :wk "Export as PDF")
+      "o l p" '(org-latex-preview :wk "Preview LaTeX"))
 
-  (cylis/leader-keys
-    "p" '(projectile-command-map :wk "Projectile"))
+    (cylis/leader-keys
+      "p" '(projectile-command-map :wk "Projectile"))
 
-  (cylis/leader-keys
-    "s" '(:ignore t :wk "Search")
-    "s d" '(dictionary-search :wk "Search dictionary")
-    "s m" '(man :wk "Man pages")
-    "s t" '(tldr :wk "Lookup TLDR docs for a command")
-    "s w" '(woman :wk "Similar to man but doesn't require man"))
+    (cylis/leader-keys
+      "s" '(:ignore t :wk "Search")
+      "s d" '(dictionary-search :wk "Search dictionary")
+      "s m" '(man :wk "Man pages")
+      "s t" '(tldr :wk "Lookup TLDR docs for a command")
+      "s w" '(woman :wk "Similar to man but doesn't require man"))
 
-  (cylis/leader-keys
-    "t" '(:ignore t :wk "Toggle")
-    "t e" '(eshell-toggle :wk "Toggle eshell")
-    "t f" '(flycheck-mode :wk "Toggle flycheck")
-    "t l" '(display-line-numbers-mode :wk "Toggle line numbers")
-    "t n" '(neotree-toggle :wk "Toggle Neotree File Viewer")
-    "t r" '(rainbow-mode :wk "Toggle rainbow mode")
-    "t t" '(visual-line-mode :wk "Toggle truncated lines")
-    "t v" '(vterm-toggle :wk "Toggle Vterm")
-    "t d" '(dashboard-open :wk "Dashboard")
-    "t s" '(elfeed :wk "Elfeed RSS")
-    "t m" '(make-frame :wk "Open buffer in new frame")
-    "t F" '(select-frame-by-name :wk "Select frame by name"))
+    (cylis/leader-keys
+      "t" '(:ignore t :wk "Toggle")
+      "t e" '(eshell-toggle :wk "Toggle eshell")
+      "t f" '(flycheck-mode :wk "Toggle flycheck")
+      "t l" '(display-line-numbers-mode :wk "Toggle line numbers")
+      "t n" '(neotree-toggle :wk "Toggle Neotree File Viewer")
+      "t r" '(rainbow-mode :wk "Toggle rainbow mode")
+      "t t" '(visual-line-mode :wk "Toggle truncated lines")
+      "t v" '(vterm-toggle :wk "Toggle Vterm")
+      "t d" '(dashboard-open :wk "Dashboard")
+      "t s" '(elfeed :wk "Elfeed RSS")
+      "t m" '(make-frame :wk "Open buffer in new frame")
+      "t F" '(select-frame-by-name :wk "Select frame by name"))
 
-  (cylis/leader-keys
-    "w" '(:ignore t :wk "Windows")
-    ;; Window splits
-    "w c" '(evil-window-delete :wk "Close window")
-    "w n" '(evil-window-new :wk "New window")
-    "w s" '(evil-window-split :wk "Horizontal split window")
-    "w v" '(evil-window-vsplit :wk "Vertical split window")
-    ;; Window motions
-    "w h" '(evil-window-left :wk "Window left")
-    "w j" '(evil-window-down :wk "Window down")
-    "w k" '(evil-window-up :wk "Window up")
-    "w l" '(evil-window-right :wk "Window right")
-    "w w" '(evil-window-next :wk "Goto next window")
-    ;; Move Windows
-    "w H" '(buf-move-left :wk "Buffer move left")
-    "w J" '(buf-move-down :wk "Buffer move down")
-    "w K" '(buf-move-up :wk "Buffer move up")
-    "w L" '(buf-move-right :wk "Buffer move right")))
+    (cylis/leader-keys
+      "w" '(:ignore t :wk "Windows")
+      ;; Window splits
+      "w c" '(evil-window-delete :wk "Close window")
+      "w n" '(evil-window-new :wk "New window")
+      "w s" '(evil-window-split :wk "Horizontal split window")
+      "w v" '(evil-window-vsplit :wk "Vertical split window")
+      ;; Window motions
+      "w h" '(evil-window-left :wk "Window left")
+      "w j" '(evil-window-down :wk "Window down")
+      "w k" '(evil-window-up :wk "Window up")
+      "w l" '(evil-window-right :wk "Window right")
+      "w w" '(evil-window-next :wk "Goto next window")
+      ;; Move Windows
+      "w H" '(buf-move-left :wk "Buffer move left")
+      "w J" '(buf-move-down :wk "Buffer move down")
+      "w K" '(buf-move-up :wk "Buffer move up")
+      "w L" '(buf-move-right :wk "Buffer move right")))
 #+end_src
 
 * GIT
@@ -518,43 +557,54 @@ Adding highlights to TODO and related words.
 + Ivy-rich, add descriptions alongside the commands in M-x.
 
 #+begin_src emacs-lisp
-(use-package counsel
-  :after ivy
-  :diminish
-  :config (counsel-mode))
-         
-(use-package ivy
-  :diminish
-  :custom
-  (setq ivy-use-virtual-buffers t)
-  (setq ivy-count-format "(%d/%d)")
-  (setq enable-recursive-minibuffers t)
-  :config
-  (ivy-mode))
+        (use-package counsel
+          :after ivy
+          :diminish
+          :config (counsel-mode))
+                 
+        (use-package ivy
+          :diminish
+          :bind (("C-s" . swiper)
+      	   :map ivy-minibuffer-map
+    	   ("TAB" . ivy-alt-done)
+  	   ("C-l" . ivy-alt-done))
+          :custom
+          (setq ivy-use-virtual-buffers t)
+          (setq ivy-count-format "(%d/%d)")
+          (setq enable-recursive-minibuffers t)
+          :config
+          (ivy-mode 1))
 
-(use-package all-the-icons-ivy-rich
-  :ensure t)
+        (use-package all-the-icons-ivy-rich
+          :ensure t)
 
-(use-package ivy-rich
-  :after ivy
-  :ensure t
-  :init (ivy-rich-mode 1)
-  :custom
-  (ivy-virtual-abbreviate 'full
-   ivy rich-switch-buffer-align-virtual-buffer t
-   ivy-rich-path-style 'abbrev)
-  :config
-  (ivy-set-display-transformer 'ivy-switch-buffer
-                               'ivy-rich-switch-buffer-transformer))
+        (use-package ivy-rich
+          :after ivy
+          :ensure t
+          :init (ivy-rich-mode 1)
+          :custom
+          (ivy-virtual-abbreviate 'full
+           ivy rich-switch-buffer-align-virtual-buffer t
+           ivy-rich-path-style 'abbrev)
+          :config
+          (ivy-set-display-transformer 'ivy-switch-buffer
+                                       'ivy-rich-switch-buffer-transformer))
 
 #+end_src
 
 * LANGUAGE SUPPORT
 Emacs has built-in programming language for Lisp, Scheme, DSSSL, Ada, ASM, AWK, C, C++, Fortran, Icon, IDL (CORBA), IDLWAVE, Java, Javascript, M4, Makefiles, Metafont, Modula2, Object Pascal, Objective-C, Octave, Pascal, Perl, Pike, PostScript, Prolog, Python, Ruby, Simula, SQL, Tcl, Verilog, and VHDL.  Other languages will require you to install additional modes.
 #+begin_src emacs-lisp
-(use-package lua-mode)
-(use-package nix-mode)
-(use-package zig-mode)
+    (use-package lua-mode)
+    (use-package nix-mode
+      :config
+      (setq ))
+    (use-package zig-mode)
+    (use-package go-mode
+        :mode "\\.go\\'"
+        :hook (go-mode . lsp-deferred)
+        :config
+        (setq go-indent-level 2))
 #+end_src
 
 * LATEX MODE
@@ -576,25 +626,32 @@ A minor mode that is used in combination with AUCTex. It can auto insert specifi
 * LSP
 ** Getting Packages needed for interaction with language servers
 #+begin_src emacs-lisp
-(use-package lsp-mode
-  :init
-  :hook ((nix-mode . lsp)
-         (js-mode . lsp)
-         (lsp-mode . lsp-enable-which-key-integration))
-  :commands lsp)
-(with-eval-after-load 'lsp-mode
+  (use-package lsp-mode
+      :init
+      (setq lsp-keymap-prefix "C-c l")
+      :hook ((nix-mode . lsp)
+              (js-mode . lsp)
+              (go-mode . lsp)
+              (lsp-mode . lsp-enable-which-key-integration))
+      :commands (lsp lsp-deferred)
+      :config (lsp-enable-which-key-integration t))
+  (with-eval-after-load 'lsp-mode
   (lsp-register-client
-    (make-lsp-client :new-connection (lsp-stdio-connection "nixd")
-                     :major-modes '(nix-mode)
-                     :priority 0
-                     :server-id 'nixd)))
-;; optionally
-(use-package lsp-ui :commands lsp-ui-mode)
-;; if you are helm user
-(use-package helm-lsp :commands helm-lsp-workspace-symbol)
-;; if you are ivy user
-(use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
-(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+      (make-lsp-client :new-connection (lsp-stdio-connection "nixd")
+                      :major-modes '(nix-mode)
+                      :priority 0
+                      :server-id 'nixd)))
+  (use-package lsp-ui
+      :hook (lsp-mode . lsp-ui-mode)
+      :custom (lsp-ui-doc-position 'bottom)
+      :commands (lsp-ui-mode))
+  ;; if you are helm user
+  ;; (use-package helm-lsp :commands helm-lsp-workspace-symbol)
+  ;; if you are ivy user
+  (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+  (use-package lsp-treemacs
+    :after lsp
+    :commands lsp-treemacs-errors-list)
 #+end_src
 
 ** Setting up debugging
@@ -718,9 +775,16 @@ Perspective provides multiple named workspaces (or “perspectives”) in Emacs,
 * Projectile
 A project interaction library for Emacs.
 #+begin_src emacs-lisp
-(use-package projectile
-  :config
-  (projectile-mode 1))
+        (use-package projectile
+          :diminish projectile-mode
+          :config (projectile-mode 1)
+          :custom ((projectile-completion-system 'ivy))
+          :init
+    (when (file-directory-p "~/src")
+      (setq projectile-project-earch-path '("~/src")))
+    (setq projectile-switch-project-action #'projectile-dired))
+    (use-package counsel-projectile
+      :config (counsel-projectile-mode))
 #+end_src
 
 * RAINBOW DELIMITERS
@@ -803,15 +867,16 @@ sudo-edit gives us the ability to open files with sudo privileges or switch over
 * THEME
 Load your own custom theme that will be placed in the themes directory of your emacs configuration path.
 #+begin_src emacs-lisp
-(add-to-list 'custom-theme-load-path "~/.config/emacs/themes/")
-(use-package doom-themes
-  :config
-  (setq doom-themes-enable-bold t
-  doom-themes-enable-italic t))
-(load-theme 'Euphoria t)
-;; fallback theme
-;;(use-package catppuccin-theme)
-;;(load-theme 'catppuccin :no-confirm)
+  (add-to-list 'custom-theme-load-path "~/.config/emacs/themes/")
+  (use-package doom-themes
+    :config
+    (setq doom-themes-enable-bold t
+    doom-themes-enable-italic t))
+  ;; (load-theme 'Euphoria t)
+  (load-theme 'doom-tokyo-night t)
+  ;; fallback theme
+  (use-package catppuccin-theme)
+  ;;(load-theme 'catppuccin :no-confirm)
 #+end_src
 
 * TLDR
@@ -824,6 +889,11 @@ Enable True Transparency if you want.
 #+begin_src emacs-lisp
 (set-frame-parameter nil 'alpha-background 70)
 (add-to-list 'default-frame-alist '(alpha-background . 70))
+#+end_src
+
+* WAKATIME
+#+begin_src emacs-lisp
+(use-package wakatime-mode)
 #+end_src
 
 * WHICH-KEY
@@ -850,18 +920,17 @@ Enable True Transparency if you want.
 * End
 Final touches, like enabling some modes that didn't work in their proper plugin configuration and adding some sane defaults.
 #+begin_src emacs-lisp
-(delete-selection-mode 1)    ;; You can select text and delete it by typing.
-(electric-pair-mode 1)       ;; Turns on automatic parens pairing
-;; The following prevents <> from auto-pairing when electric-pair-mode is on.
-;; Otherwise, org-tempo is broken when you try to <s TAB...
-(add-hook 'org-mode-hook (lambda ()
-           (setq-local electric-pair-inhibit-predicate
-                   `(lambda (c)
-                  (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c))))))
-(evil-mode 1)
-(all-the-icons-ivy-rich-mode 1)
-(global-flycheck-mode 1)
-(doom-modeline-mode 1)
-(persp-mode 1)
-(elfeed-goodies/setup)
+  (delete-selection-mode 1)
+  (electric-pair-mode 1)
+  (add-hook 'org-mode-hook (lambda ()
+             (setq-local electric-pair-inhibit-predicate
+                     `(lambda (c)
+                    (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c))))))
+  (evil-mode 1)
+  (all-the-icons-ivy-rich-mode 1)
+  (global-flycheck-mode 1)
+  (doom-modeline-mode 1)
+  (persp-mode 1)
+  (global-wakatime-mode)
+  ;; (elfeed-goodies/setup)
 #+end_src

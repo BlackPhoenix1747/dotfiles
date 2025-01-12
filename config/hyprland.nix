@@ -46,7 +46,7 @@ with lib;
           exec-once = dbus-update-activation-environment --systemd --all
           exec-once = systemctl --user import-environment QT_QPA_PLATFORMTHEME WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
           exec-once = killall -q swww;sleep .5 && swww init
-          exec-once = killall -q waybar;sleep .5 && waybar
+          # exec-once = killall -q waybar;sleep .5 && waybar
           exec-once = killall -q swaync;sleep .5 && swaync
           exec-once = nm-applet --indicator
           exec-once = blueman-applet
@@ -72,7 +72,7 @@ with lib;
           input {
             kb_layout = us
             kb_options = grp:alt_shift_toggle
-            follow_mouse = 1
+            follow_mouse = 3
             touchpad {
               natural_scroll = false
             }
@@ -115,10 +115,10 @@ with lib;
           misc {
             initial_workspace_tracking = 0
             mouse_move_enables_dpms = true
-            key_press_enables_dpms = false
+            key_press_enables_dpms = true
           }
           animations {
-            enabled = no
+            enabled = yes
             bezier = wind, 0.05, 0.9, 0.1, 1.05
             bezier = winIn, 0.1, 1.1, 0.1, 1.1
             bezier = winOut, 0.3, -0.3, 0, 1
@@ -133,10 +133,12 @@ with lib;
           }
           decoration {
             rounding = 10
-            drop_shadow = true
-            shadow_range = 4
-            shadow_render_power = 3
-            col.shadow = rgba(1a1a1aee)
+            shadow {
+              enabled = true
+              range = 4
+              render_power = 3
+              color = rgba(1a1a1aee)
+            }
             blur {
                 enabled = true size = 5
                 passes = 3
@@ -163,7 +165,7 @@ with lib;
           bind = ${modifier}SHIFT,N,exec,swaync-client -rs
           bind = ${modifier},W,exec,${browser}
           bind = ${modifier},E,exec,emopicker9000
-          bind = ${modifier},S,exec,screenshootin
+          bind = ,Print,exec,screenshootin
           bind = ${modifier},D,exec,vesktop
           bind = ${modifier},O,exec,obsidian
           bind = ${modifier},C,exec,hyprpicker -a

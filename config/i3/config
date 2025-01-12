@@ -1,4 +1,14 @@
 set $mod Mod4
+set $browser zen
+set $editor zeditor
+set $terminal ghostty
+set $menu rofi-launcher
+set $chat vesktop
+set $music spotify
+set $yt freetube
+set $emoji emopicker9000
+set $screenshot "scrot -q 100 /home/cylis/Pictures/Screenshots/screenshot_%Y-%m-%d_%H-%M-%S.png"
+
 font pango:JetBrainsNLNerdFontPropo:BoldItalic 14
 exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
@@ -11,20 +21,19 @@ set $refresh_i3status killall -SIGUSR1 i3status
 # bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
 # bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
 
-# Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 tiling_drag modifier titlebar
 
-# start a terminal
-bindsym $mod+Return exec ghostty 
-
-# kill focused window
 bindsym $mod+q kill
-
-# start dmenu (a program launcher)
-bindsym $mod+d exec rofi-launcher
-
-# change focus
+bindsym $mod+Return exec $terminal 
+bindsym $mod+Shift+Return exec $menu
+bindsym $mod+d exec $chat
+bindsym $mod+y exec $yt
+bindsym $mod+period exec $emoji
+bindsym $mod+m exec $music
+bindsym $mod+Print exec $screenshot
+bindsym $mod+w exec $browser
+bindsym $mod+z exec $editor
 bindsym $mod+h focus left
 bindsym $mod+j focus down
 bindsym $mod+k focus up
@@ -59,7 +68,7 @@ bindsym $mod+f fullscreen toggle
 
 # change container layout (stacked, tabbed, toggle split)
 bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
+bindsym $mod+t layout tabbed
 bindsym $mod+e layout toggle split
 
 # toggle tiling / floating
@@ -186,7 +195,10 @@ bindsym $mod+b exec --no-startup-id rofi-beats
 exec_always systemctl --user import-environment DISPLAY
 # exec_always clipmenud
 # exec_always picom & disown
-exec_always --no-startup-id killall polybar; polybar & disown
-exec_always --no-startup-id xwallpaper --maximize /home/cylis/Pictures/Wallpapers/japanese-purple.jpg
+exec_always --no-startup-id ~/.config/polybar/launch.sh
+exec_always --no-startup-id xwallpaper --maximize /home/cylis/Pictures/Wallpapers/law.jpg
 exec_always --no-startup-id xbindkeys & disown
 exec_always --no-startup-id flameshot & disown
+exec --no-startup-id xrandr --newmode "1920x1080_75.00"  220.75  1920 2064 2264 2608  1080 1083 1088 1130 -hsync +vsync
+exec --no-startup-id xrandr --addmode HDMI-A-0 1920x1080_75.00
+exec --no-startup-id xrandr --output HDMI-A-0 --mode "1920x1080_75.00"
